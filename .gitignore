@@ -12,7 +12,6 @@ code
 fe
 huggingface
 scratch
-src/index.css
 src/types.ts
 models.json
 package-lock.json

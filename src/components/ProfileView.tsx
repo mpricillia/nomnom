@@ -263,7 +263,7 @@ export default function ProfileView({
 
             <div className="flex flex-col gap-1.5">
               <div className="flex justify-between items-end">
-                <span className="text-xs font-extrabold text-brand-dark">Gemini 1.5 Flash</span>
+                <span className="text-xs font-extrabold text-brand-dark">Gemini 2.5 Flash</span>
                 <span className="text-[9px] font-mono text-brand-brown-muted">Refreshes in {hoursRemaining} hours</span>
               </div>
               

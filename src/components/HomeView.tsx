@@ -56,8 +56,8 @@ export default function HomeView({ onNavigateToPlayground }: HomeViewProps) {
 
             {/* Body Description */}
             <p className="text-base md:text-lg text-brand-brown-muted leading-relaxed font-sans font-light">
-              People often praise the flavor while complaining about the box in the exact same review. 
-              <strong className="font-semibold text-brand-dark"> Nomnom.ai</strong> automatically extracts and categorizes these mixed sentiments in real-time.
+               Best for deep, complex feedback where customers express intricate emotions, sarcasm, or highly specific product nuances. (Consumes tokens). 
+              <strong className="font-semibold text-brand-dark"> Nomnom.ai</strong> automatically extracts and categorizes sentiment in real-time.
             </p>
 
             {/* Primary Action Button */}
@@ -106,9 +106,7 @@ export default function HomeView({ onNavigateToPlayground }: HomeViewProps) {
                       Texture
                     </span>
                   </div>
-                  <span className="px-2 py-1 text-xs font-mono font-semibold text-brand-primary bg-brand-peach-tag rounded-full">
-                    +0.92
-                  </span>
+                  <span className="px-2 py-0.5 text-[9px] bg-[#a53b22] text-white font-bold rounded">Sentiment</span>
                 </div>
               </div>
 

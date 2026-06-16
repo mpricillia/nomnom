@@ -9,8 +9,9 @@ interface ActivityItem {
   date: string;
   product: string;
   snippet: string;
-  sentiment: "POSITIVE" | "NEGATIVE" | "MIXED";
+  sentiment: "POSITIVE" | "NEGATIVE";
   score: number;
+  aspects?: any[];
 }
 
 const DEFAULT_ACTIVITIES: ActivityItem[] = [
@@ -19,8 +20,12 @@ const DEFAULT_ACTIVITIES: ActivityItem[] = [
     date: "2026-06-04 10:45 AM",
     product: "Mavorly Overnight Oats",
     snippet: "The overnight oats from Mavorly tasted absolutely incredible, but the cardboard packaging was impossible to open.",
-    sentiment: "MIXED",
-    score: 0.05
+    sentiment: "POSITIVE",
+    score: 0.05,
+    aspects: [
+      { category: "Taste & Flavor", label: "absolutely incredible", score: 0.95, sentiment: "positive", quote: "The overnight oats from Mavorly tasted absolutely incredible" },
+      { category: "Packaging", label: "impossible to open", score: -0.90, sentiment: "negative", quote: "but the cardboard packaging was impossible to open" }
+    ]
   },
   {
     id: "act-2",
@@ -28,7 +33,11 @@ const DEFAULT_ACTIVITIES: ActivityItem[] = [
     product: "Gluten-Free Crisp Crust Pizza",
     snippet: "Insanely crisp base and holds up perfectly under our premium organic toppings. Everyone loved it!",
     sentiment: "POSITIVE",
-    score: 0.95
+    score: 0.95,
+    aspects: [
+      { category: "Crust / Base", label: "insanely crisp", score: 0.95, sentiment: "positive", quote: "Insanely crisp base" },
+      { category: "Toppings", label: "premium organic", score: 0.90, sentiment: "positive", quote: "holds up perfectly under our premium organic toppings" }
+    ]
   },
   {
     id: "act-3",
@@ -36,7 +45,11 @@ const DEFAULT_ACTIVITIES: ActivityItem[] = [
     product: "Truffle Infused Chili Oil",
     snippet: "Way too heavy on artificial truffle aromatics. Fully dominates the clean, spicy chili heat.",
     sentiment: "NEGATIVE",
-    score: -0.85
+    score: -0.85,
+    aspects: [
+      { category: "Aroma", label: "way too heavy", score: -0.85, sentiment: "negative", quote: "Way too heavy on artificial truffle aromatics" },
+      { category: "Chili Heat", label: "clean spicy", score: 0.75, sentiment: "positive", quote: "Fully dominates the clean, spicy chili heat" }
+    ]
   },
   {
     id: "act-4",
@@ -44,15 +57,23 @@ const DEFAULT_ACTIVITIES: ActivityItem[] = [
     product: "Artisanal Sourdough Starter",
     snippet: "Unbelievably active yeast cultures. Produced a beautiful, tall sourdough sourdough loft with exquisite sour flavor.",
     sentiment: "POSITIVE",
-    score: 0.90
+    score: 0.90,
+    aspects: [
+      { category: "Yeast Cultures", label: "unbelievably active", score: 0.95, sentiment: "positive", quote: "Unbelievably active yeast cultures" },
+      { category: "Flavor", label: "exquisite sour", score: 0.90, sentiment: "positive", quote: "Produced a beautiful, tall sourdough sourdough loft with exquisite sour flavor" }
+    ]
   },
   {
     id: "act-5",
     date: "2026-06-02 04:55 PM",
     product: "Nitro Cold Brew Coffee",
     snippet: "Incredible rich chocolatey taste notes, but the metal container was low on nitro pressure and failed on cascade.",
-    sentiment: "MIXED",
-    score: -0.10
+    sentiment: "NEGATIVE",
+    score: -0.10,
+    aspects: [
+      { category: "Taste Notes", label: "incredible rich chocolatey", score: 0.90, sentiment: "positive", quote: "Incredible rich chocolatey taste notes" },
+      { category: "Container", label: "low on nitro pressure", score: -0.80, sentiment: "negative", quote: "but the metal container was low on nitro pressure and failed on cascade" }
+    ]
   }
 ];
 
@@ -67,7 +88,7 @@ export default function RecentActivitiesView() {
 
   const fetchActivities = async () => {
     if (!user) {
-      setActivities(DEFAULT_ACTIVITIES);
+      setActivities([]);
       setLoading(false);
       return;
     }
@@ -92,16 +113,17 @@ export default function RecentActivitiesView() {
             product: d.product_name,
             snippet: d.review_text,
             sentiment: d.overall_sentiment,
-            score: d.overall_score
+            score: d.overall_score,
+            aspects: d.aspects
           };
         });
         setActivities(formatted);
       } else {
-        setActivities(DEFAULT_ACTIVITIES);
+        setActivities([]);
       }
     } catch (e) {
       console.error("Failed to fetch activities", e);
-      setActivities(DEFAULT_ACTIVITIES);
+      setActivities([]);
     } finally {
       setLoading(false);
     }
@@ -213,7 +235,7 @@ export default function RecentActivitiesView() {
       </div>
 
       {/* Database Stats Counters */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white border border-neutral-200/60 rounded-2xl p-4 text-left shadow-2xs">
           <span className="text-[10px] uppercase font-mono font-bold text-brand-brown-muted">Total Evaluated</span>
           <div className="text-2xl font-extrabold text-brand-dark mt-1 font-mono">{activities.length}</div>
@@ -228,12 +250,6 @@ export default function RecentActivitiesView() {
           <span className="text-[10px] uppercase font-mono font-bold text-rose-700">Negative Inconsistencies</span>
           <div className="text-2xl font-extrabold text-rose-800 mt-1 font-mono">
             {activities.filter(a => a.sentiment === "NEGATIVE").length}
-          </div>
-        </div>
-        <div className="bg-white border border-neutral-200/60 rounded-2xl p-4 text-left shadow-2xs">
-          <span className="text-[10px] uppercase font-mono font-bold text-amber-700">Mixed Contradictions</span>
-          <div className="text-2xl font-extrabold text-amber-800 mt-1 font-mono">
-            {activities.filter(a => a.sentiment === "MIXED").length}
           </div>
         </div>
       </div>
@@ -259,7 +275,7 @@ export default function RecentActivitiesView() {
           <div className="flex items-center gap-1.5">
             <Filter className="w-4 h-4 text-brand-brown-muted/60" />
             <span className="text-[10px] uppercase font-mono text-brand-brown-muted font-bold mr-1">Sentiment:</span>
-            {["ALL", "POSITIVE", "NEGATIVE", "MIXED"].map((sent) => (
+            {["ALL", "POSITIVE", "NEGATIVE"].map((sent) => (
               <button
                 key={sent}
                 onClick={() => setSelectedSentiment(sent)}
@@ -345,11 +361,9 @@ export default function RecentActivitiesView() {
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-extrabold border ${
                           act.sentiment === "POSITIVE"
                             ? "bg-emerald-50 text-emerald-700 border-emerald-100"
-                            : act.sentiment === "NEGATIVE"
-                              ? "bg-rose-50 text-rose-700 border-rose-100"
-                              : "bg-amber-50 text-amber-700 border-amber-200"
+                            : "bg-rose-50 text-rose-700 border-rose-100"
                         }`}>
-                          {act.sentiment}
+                          {act.sentiment === "POSITIVE" ? "POSITIVE" : "NEGATIVE"}
                         </span>
                       </td>
 
@@ -440,15 +454,13 @@ export default function RecentActivitiesView() {
                 <span className="text-[10px] text-brand-brown-muted font-bold uppercase tracking-wider font-mono font-semibold">Overall Score</span>
                 <div className="flex items-center gap-2">
                   <span className={`text-xs font-black font-mono px-2 py-0.5 rounded ${
-                    selectedActivity.score > 0.1 
+                    selectedActivity.score >= 0
                       ? "bg-emerald-50 text-emerald-700" 
-                      : selectedActivity.score < -0.1 
-                        ? "bg-rose-50 text-rose-700" 
-                        : "bg-amber-50 text-amber-100/80 text-amber-800"
+                      : "bg-rose-50 text-rose-700"
                   }`}>
                     {selectedActivity.score > 0 ? "+" : ""}{selectedActivity.score.toFixed(2)}
                   </span>
-                  <span className="text-xs text-brand-dark font-semibold">({selectedActivity.sentiment})</span>
+                  <span className="text-xs text-brand-dark font-semibold">({selectedActivity.score >= 0 ? "POSITIVE" : "NEGATIVE"})</span>
                 </div>
               </div>
             </div>
@@ -467,59 +479,37 @@ export default function RecentActivitiesView() {
                 Extracted Aspect-Level Sentiments
               </span>
               <div className="flex flex-col gap-2.5">
-                {selectedActivity.sentiment === "POSITIVE" && (
-                  <>
-                    <div className="flex items-center justify-between text-xs p-3 bg-emerald-50/50 border border-emerald-100/30 rounded-xl">
-                      <div className="flex flex-col gap-0.5">
-                        <span className="font-extrabold text-[#006a65]">Taste & Flavor</span>
-                        <span className="text-[10px] text-brand-brown-muted font-mono">Isolated Phrase: "absolutely incredible/exquisite"</span>
+                {selectedActivity.aspects && selectedActivity.aspects.length > 0 ? (
+                  selectedActivity.aspects.map((asp: any, idx: number) => {
+                    const isPositive = asp.score >= 0 || asp.sentiment === 'positive';
+                    const scoreFormatted = (asp.score >= 0 ? "+" : "") + (typeof asp.score === 'number' ? asp.score.toFixed(2) : "0.00");
+                    const label = asp.label || asp.opini || "neutral";
+                    const category = asp.category || asp.aspek || "General";
+                    const quote = asp.quote || "";
+
+                    return (
+                      <div 
+                        key={idx} 
+                        className={`flex items-start justify-between gap-2 text-xs p-3 rounded-xl border ${
+                          isPositive 
+                            ? "bg-emerald-50/50 border-emerald-100/30 text-emerald-800" 
+                            : "bg-rose-50/50 border-rose-100/30 text-rose-800"
+                        }`}
+                      >
+                        <div className="flex flex-col gap-0.5 text-left min-w-0 flex-1">
+                          <span className="font-extrabold uppercase tracking-wide truncate">{category}</span>
+                          <span className="text-[10px] text-brand-brown-muted font-mono font-light line-clamp-2">
+                            Phrase: "{label}"{quote ? ` — "${quote.length > 60 ? quote.slice(0, 60) + '...' : quote}"` : ""}
+                          </span>
+                        </div>
+                        <span className="text-xs font-black font-mono shrink-0 ml-2">{scoreFormatted}</span>
                       </div>
-                      <span className="text-xs font-black text-[#006a65] font-mono">+0.95</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs p-3 bg-emerald-50/50 border border-emerald-100/30 rounded-xl block">
-                      <div className="flex flex-col gap-0.5">
-                        <span className="font-extrabold text-[#006a65]">Freshness & Activity</span>
-                        <span className="text-[10px] text-brand-brown-muted font-mono">Isolated Phrase: "perfectly active / fresh"</span>
-                      </div>
-                      <span className="text-xs font-black text-[#006a65] font-mono">+0.90</span>
-                    </div>
-                  </>
-                )}
-                {selectedActivity.sentiment === "NEGATIVE" && (
-                  <>
-                    <div className="flex items-center justify-between text-xs p-3 bg-rose-50/50 border border-rose-100/30 rounded-xl">
-                      <div className="flex flex-col gap-0.5">
-                        <span className="font-extrabold text-[#a53b22]">Sensory Aroma Profile</span>
-                        <span className="text-[10px] text-brand-brown-muted font-mono">Isolated Phrase: "Too artificial / heavy aroma"</span>
-                      </div>
-                      <span className="text-xs font-black text-[#a53b22] font-mono">-0.85</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs p-3 bg-rose-50/50 border border-rose-100/30 rounded-xl block">
-                      <div className="flex flex-col gap-0.5">
-                        <span className="font-extrabold text-[#a53b22]">Package Logistics</span>
-                        <span className="text-[10px] text-brand-brown-muted font-mono">Isolated Phrase: "impossible to open / weak container"</span>
-                      </div>
-                      <span className="text-xs font-black text-[#a53b22] font-mono">-0.75</span>
-                    </div>
-                  </>
-                )}
-                {selectedActivity.sentiment === "MIXED" && (
-                  <>
-                    <div className="flex items-center justify-between text-xs p-3 bg-emerald-50/55 border border-emerald-100/30 rounded-xl">
-                      <div className="flex flex-col gap-0.5">
-                        <span className="font-extrabold text-emerald-800">Taste Profile Segment</span>
-                        <span className="text-[10px] text-brand-brown-muted font-mono font-light">Isolated Phrase: "tasted absolutely incredible / rich"</span>
-                      </div>
-                      <span className="text-xs font-black text-emerald-800 font-mono">+0.85</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs p-3 bg-rose-50/55 border border-rose-100/30 rounded-xl font-light">
-                      <div className="flex flex-col gap-0.5">
-                        <span className="font-extrabold text-rose-800">Culinary Packaging Segment</span>
-                        <span className="text-[10px] text-brand-brown-muted font-mono">Isolated Phrase: "impossible to open / low pressure"</span>
-                      </div>
-                      <span className="text-xs font-black text-rose-800 font-mono">-0.80</span>
-                    </div>
-                  </>
+                    );
+                  })
+                ) : (
+                  <div className="text-xs text-brand-brown-muted italic p-4 text-center bg-neutral-50 rounded-xl border border-neutral-100">
+                    No aspect-level sentiment data available for this activity.
+                  </div>
                 )}
               </div>
             </div>

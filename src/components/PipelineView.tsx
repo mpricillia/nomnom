@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Database, Cpu, Sparkles, LayoutGrid, GitBranch } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
-const INPUT_TEXT = "The oatmeal bowl with mixed berries tasted unbelievably delicious and sweet! However, the delivery took almost an hour making it cold.";
+const INPUT_TEXT = "The oatmeal bowl with berries tasted unbelievably delicious and sweet! However, the delivery took almost an hour making it cold.";
 
 export default function PipelineView() {
   const [selectedBranch, setSelectedBranch] = useState<"DistilBERT" | "LLM" | "Hybrid">("Hybrid");
@@ -69,7 +69,7 @@ export default function PipelineView() {
               ))}
             </div>
             <div className="p-3 bg-neutral-50 border border-neutral-100 rounded-xl">
-              {selectedBranch === "DistilBERT" && <span className="text-[11px] text-brand-dark">Local fine-tuned IndoBERT model. No API Key needed, Free. Single text only.</span>}
+              {selectedBranch === "DistilBERT" && <span className="text-[11px] text-brand-dark">Local fine-tune BERT model. No API Key needed, Free. Single text only.</span>}
               {selectedBranch === "LLM" && <span className="text-[11px] text-brand-dark">Gemini 2.5 Flash receives a zero-shot prompt to extract aspects and assign sentiments simultaneously. Supports CSV batch.</span>}
               {selectedBranch === "Hybrid" && <span className="text-[11px] text-brand-dark">1. Gemini 2.5 Flash extracts Aspect & Opinion.<br/>2. DistilBERT processes the extracted pairs to determine Sentiment. Supports CSV batch.</span>}
             </div>
@@ -104,7 +104,7 @@ export default function PipelineView() {
           <div className="bg-[#a53b22]/5 border border-[#a53b22]/10 rounded-xl p-4 flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-black text-brand-dark uppercase tracking-wide">Analysis Complete</span>
-              <span className="px-2 py-0.5 text-[9px] bg-[#a53b22] text-white font-bold rounded">Mixed Sentiment</span>
+              <span className="px-2 py-0.5 text-[9px] bg-[#a53b22] text-white font-bold rounded">Sentiment</span>
             </div>
             <p className="text-[11px] text-brand-brown-muted leading-relaxed font-light">
               Results rendered on Dashboard or formatted into Exportable PDF table.

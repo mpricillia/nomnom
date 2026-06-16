@@ -16,7 +16,7 @@ export default function ModelsView({ onSelectedEngineChange, selectedEngineId }:
     },
     {
       title: "LLM Integration",
-      description: "Best for deep, complex feedback where customers express mixed emotions, sarcasm, or highly specific product nuances. (Consumes tokens)",
+      description: "Best for deep, complex feedback where customers express complex emotions, sarcasm, or highly specific product nuances. (Consumes tokens)",
       icon: Sparkles,
       iconColor: "text-[#a53b22] bg-[#ffece8]/50",
     },

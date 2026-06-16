@@ -15,7 +15,7 @@ export default function DashboardView() {
   const hasApiKey = !!localStorage.getItem("nomnom_gemini_key");
 
   const [historyData, setHistoryData] = useState<{ day: string, date: string, count: number, rawDate: Date }[]>([]);
-  const [sentimentStats, setSentimentStats] = useState({ positive: 0, negative: 0, mixed: 0, total: 0 });
+  const [sentimentStats, setSentimentStats] = useState({ positive: 0, negative: 0, total: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -27,7 +27,7 @@ export default function DashboardView() {
       
       const { data, error } = await supabase
         .from('analysis_history')
-        .select('created_at, overall_sentiment')
+        .select('created_at, overall_sentiment, overall_score')
         .eq('user_id', user.id)
         .order('created_at', { ascending: true });
 
@@ -40,7 +40,7 @@ export default function DashboardView() {
       if (data && data.length > 0) {
         // Group by date
         const grouped: Record<string, number> = {};
-        let pos = 0, neg = 0, mix = 0;
+        let pos = 0, neg = 0;
 
         data.forEach(row => {
           const d = new Date(row.created_at);
@@ -49,9 +49,13 @@ export default function DashboardView() {
           grouped[dateStr] = (grouped[dateStr] || 0) + 1;
 
           const sent = (row.overall_sentiment || "").toUpperCase();
-          if (sent === "POSITIVE") pos++;
-          else if (sent === "NEGATIVE") neg++;
-          else mix++;
+          if (sent === "POSITIVE") {
+            pos++;
+          } else if (sent === "NEGATIVE") {
+            neg++;
+          } else {
+            // No fallback for old MIXED data; ignore undefined sentiments.
+          }
         });
 
         // Convert grouped object to array
@@ -73,7 +77,7 @@ export default function DashboardView() {
         // Limit to last 7 active days if needed, or keep all to let the flexbox handle it
         // We'll take up to the last 7 active days to ensure it doesn't overflow horizontally
         setHistoryData(chartData.slice(-7));
-        setSentimentStats({ positive: pos, negative: neg, mixed: mix, total: data.length });
+        setSentimentStats({ positive: pos, negative: neg, total: data.length });
       }
       
       setLoading(false);
@@ -86,8 +90,7 @@ export default function DashboardView() {
   
   // Donut chart calculations
   const posPct = sentimentStats.total === 0 ? 0 : Math.round((sentimentStats.positive / sentimentStats.total) * 100);
-  const negPct = sentimentStats.total === 0 ? 0 : Math.round((sentimentStats.negative / sentimentStats.total) * 100);
-  const mixPct = sentimentStats.total === 0 ? 0 : Math.round((sentimentStats.mixed / sentimentStats.total) * 100);
+  const negPct = sentimentStats.total === 0 ? 0 : 100 - posPct;
 
   return (
     <div className="w-full max-w-6xl mx-auto px-6 py-10 flex flex-col gap-8 animate-fade-in">
@@ -160,19 +163,19 @@ export default function DashboardView() {
           
           {loading ? (
              <div className="flex-1 flex items-center justify-center">
-                <span className="text-xs text-brand-brown-muted animate-pulse font-medium">Memuat data...</span>
+                <span className="text-xs text-brand-brown-muted animate-pulse font-medium">Loading data...</span>
              </div>
           ) : sentimentStats.total === 0 ? (
              <div className="flex-1 flex flex-col items-center justify-center gap-2">
-                <span className="text-xs text-brand-brown-muted font-medium">Belum ada data sentimen.</span>
-                <button onClick={() => navigate("/playground")} className="text-[10px] font-bold text-[#a53b22] hover:underline">Mulai Analisis →</button>
+                <span className="text-xs text-brand-brown-muted font-medium">No data sentiment yet.</span>
+                <button onClick={() => navigate("/playground")} className="text-[10px] font-bold text-[#a53b22] hover:underline">Start Analysis →</button>
              </div>
           ) : (
             <div className="flex-1 flex items-center justify-between gap-4 mt-2">
               <div 
                 className="relative w-28 h-28 rounded-full flex items-center justify-center shrink-0"
                 style={{ 
-                  background: `conic-gradient(#10b981 0% ${posPct}%, #f43f5e ${posPct}% ${posPct + negPct}%, #f59e0b ${posPct + negPct}% 100%)`,
+                  background: `conic-gradient(#10b981 0% ${posPct}%, #f43f5e ${posPct}% 100%)`,
                   boxShadow: 'inset 0 0 10px rgba(0,0,0,0.05)'
                 }}
               >
@@ -187,7 +190,7 @@ export default function DashboardView() {
                     <div className="flex items-center justify-between">
                        <div className="flex items-center gap-1.5">
                           <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm" />
-                          <span className="text-[10px] font-bold text-brand-dark uppercase tracking-wide">Positif</span>
+                          <span className="text-[10px] font-bold text-brand-dark uppercase tracking-wide">Positive</span>
                        </div>
                        <span className="text-xs font-black text-emerald-600">{posPct}%</span>
                     </div>
@@ -196,22 +199,11 @@ export default function DashboardView() {
                     <div className="flex items-center justify-between">
                        <div className="flex items-center gap-1.5">
                           <div className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-sm" />
-                          <span className="text-[10px] font-bold text-brand-dark uppercase tracking-wide">Negatif</span>
+                          <span className="text-[10px] font-bold text-brand-dark uppercase tracking-wide">Negative</span>
                        </div>
                        <span className="text-xs font-black text-rose-600">{negPct}%</span>
                     </div>
                  </div>
-                 {mixPct > 0 && (
-                   <div className="flex flex-col">
-                      <div className="flex items-center justify-between">
-                         <div className="flex items-center gap-1.5">
-                            <div className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-sm" />
-                            <span className="text-[10px] font-bold text-brand-dark uppercase tracking-wide">Campuran</span>
-                         </div>
-                         <span className="text-xs font-black text-amber-600">{mixPct}%</span>
-                      </div>
-                   </div>
-                 )}
               </div>
             </div>
           )}
@@ -234,11 +226,11 @@ export default function DashboardView() {
           <div className="flex-1 flex items-end justify-around pb-2 gap-3 h-32 border-b border-neutral-100 relative mt-2">
             {loading ? (
                <div className="w-full h-full flex items-center justify-center">
-                 <span className="text-xs text-brand-brown-muted animate-pulse font-medium">Memuat grafik...</span>
+                 <span className="text-xs text-brand-brown-muted animate-pulse font-medium">Loading chart...</span>
                </div>
             ) : historyData.length === 0 ? (
                <div className="w-full h-full flex flex-col items-center justify-center gap-2">
-                 <span className="text-xs text-brand-brown-muted font-medium">Belum ada history aktivitas.</span>
+                 <span className="text-xs text-brand-brown-muted font-medium">No history yet.</span>
                </div>
             ) : (
               historyData.map((d, i) => (
@@ -271,7 +263,7 @@ export default function DashboardView() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
-            { name: "DistilBERT", tag: "Free Unlimited", color: "bg-emerald-50 text-emerald-800 border-emerald-100", desc: "Local IndoBERT fine-tuned. No API needed. Single text only." },
+            { name: "DistilBERT", tag: "Free Unlimited", color: "bg-emerald-50 text-emerald-800 border-emerald-100", desc: "Local BERT fine-tuned. No API needed. Single text only." },
             { name: "Hybrid", tag: "3x Trial / API Key", color: "bg-amber-50 text-amber-800 border-amber-100", desc: "Gemini extracts aspects, DistilBERT assigns sentiment. Supports CSV batch." },
             { name: "LLM (Gemini)", tag: "3x Trial / API Key", color: "bg-blue-50 text-blue-800 border-blue-100", desc: "Full Gemini 2.5 Flash end-to-end. Supports CSV batch." },
           ].map(m => (

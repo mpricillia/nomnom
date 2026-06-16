@@ -14,7 +14,7 @@ export default function WhyView() {
           Why Average Ratings Are Failing Your Business
         </h2>
         <p className="text-base text-brand-brown-muted leading-relaxed font-light">
-          Traditional sentiment tools compress a sentence's rich emotion into a single flat aggregate score. When customers express complex mixed feelings—like a delicious meal served in a broken container—the result is neutralized to an unproductive average.
+          Traditional sentiment tools compress a sentence's rich emotion into a single flat aggregate score. When customers express complex feelings—like a delicious meal served in a broken container—the result is neutralized to an unproductive average.
         </p>
       </div>
 

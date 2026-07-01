@@ -1,4 +1,4 @@
-# Nomnom AI 🦖
+# Nomnom AI 🥨
 
 Nomnom AI is a smart, modern web application for sentiment analysis utilizing Hybrid Models (Google Gemini 1.5 Flash + IndoBERT) and DistilBERT. It offers automated text processing, scalable API quotas, and secure local credential management.
 
